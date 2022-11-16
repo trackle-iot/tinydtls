@@ -36,13 +36,17 @@
 #define IS_WINDOWS 1
 #endif
 
+#define WITH_SHA256 1
+
 #ifndef CONTIKI
 #ifndef RIOT_VERSION
 #ifndef IS_WINDOWS
+#ifndef WITH_ESPIDF
 #ifndef WITH_POSIX
 /* TODO: To remove in a future */
 #define WITH_POSIX 1
 #endif /* WITH_POSIX */
+#endif /* WITH_ESPIDF */
 #endif /* IS_WINDOWS */
 #include "dtls_config.h"
 #endif /* RIOT_VERSION */

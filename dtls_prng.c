@@ -21,7 +21,7 @@
 #if defined (WITH_CONTIKI)
 #include "platform-specific/dtls_prng_contiki.c"
 
-#elif defined (ESPIDF_VERSION)
+#elif defined (WITH_ESPIDF)
 #include "platform-specific/dtls_prng_espidf.c"
 
 #elif defined (RIOT_VERSION)
