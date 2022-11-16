@@ -183,6 +183,9 @@ static const unsigned char cert_asn1_header[] = {
       0x03, 0x42, 0x00, /* BIT STRING, length 66 bytes, 0 bits unused */
          0x04 /* uncompressed, followed by the r und s values of the public key */
 };
+
+static const unsigned char server_key_header[] = {0x0b, 0x00, 0x00, 0x5e, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5e, 0x00, 0x00, 0x5b};
+
 #endif /* DTLS_ECC */
 
 #ifdef WITH_CONTIKI
@@ -3065,12 +3068,15 @@ check_server_hello_verify_request(dtls_context_t *ctx,
 static int
 check_server_certificate(dtls_context_t *ctx,
 			 dtls_peer_t *peer,
-			 uint8 *data, size_t data_length)
+			 uint8 *data, size_t data_length, uint8 update_hash)
 {
   int err;
   dtls_handshake_parameters_t *config = peer->handshake_params;
 
-  update_hs_hash(peer, data, data_length);
+  if (update_hash == 1)
+  { // to avoid sign error if key not from server
+    update_hs_hash(peer, data, data_length);
+  }
 
   assert(is_tls_ecdhe_ecdsa_with_aes_128_ccm_8(config->cipher));
 
@@ -3632,7 +3638,7 @@ handle_handshake_msg(dtls_context_t *ctx, dtls_peer_t *peer, uint8 *data, size_t
         (role == DTLS_SERVER && state != DTLS_STATE_WAIT_CLIENTCERTIFICATE)) {
       return dtls_alert_fatal_create(DTLS_ALERT_UNEXPECTED_MESSAGE);
     }
-    err = check_server_certificate(ctx, peer, data, data_length);
+    err = check_server_certificate(ctx, peer, data, data_length, 1);
     if (err < 0) {
       dtls_warn("error in check_server_certificate err: %i\n", err);
       return err;
@@ -3648,14 +3654,32 @@ handle_handshake_msg(dtls_context_t *ctx, dtls_peer_t *peer, uint8 *data, size_t
 #endif /* DTLS_ECC */
 
   case DTLS_HT_SERVER_KEY_EXCHANGE:
-    if (state != DTLS_STATE_WAIT_SERVERKEYEXCHANGE && state != DTLS_STATE_WAIT_SERVERHELLODONE) {
+    if (state != DTLS_STATE_WAIT_SERVERKEYEXCHANGE && state != DTLS_STATE_WAIT_SERVERHELLODONE && state != DTLS_STATE_WAIT_SERVERCERTIFICATE) {
       return dtls_alert_fatal_create(DTLS_ALERT_UNEXPECTED_MESSAGE);
     }
 
 #ifdef DTLS_ECC
     if (is_tls_ecdhe_ecdsa_with_aes_128_ccm_8(peer->handshake_params->cipher)) {
+
+      // force use local server key @flaz83
+      if (state == DTLS_STATE_WAIT_SERVERCERTIFICATE)
+      {
+        const dtls_server_certificate_t *server_certificate_key;
+        int res = CALL(ctx, get_server_certificate, &peer->session, &server_certificate_key);
+        if (res < 0)
+        {
+          dtls_crit("no ecdsa server key provided\n");
+          return res;
+        }
+        static uint8 server_key[DTLS_PUBLIC_KEY_HEADER_LENGTH + DTLS_PUBLIC_KEY_LENGTH];
+        memcpy(server_key, server_key_header, DTLS_PUBLIC_KEY_HEADER_LENGTH);
+        memcpy(server_key + DTLS_PUBLIC_KEY_HEADER_LENGTH, server_certificate_key->pub_key, DTLS_PUBLIC_KEY_LENGTH);
+        err = check_server_certificate(ctx, peer, server_key, DTLS_PUBLIC_KEY_HEADER_LENGTH + DTLS_PUBLIC_KEY_LENGTH, 0);
+        peer->state = DTLS_STATE_WAIT_SERVERKEYEXCHANGE;
+      }
+
       if (state != DTLS_STATE_WAIT_SERVERKEYEXCHANGE) {
-        return dtls_alert_fatal_create(DTLS_ALERT_UNEXPECTED_MESSAGE);
+        dtls_info("should be in DTLS_STATE_WAIT_SERVERKEYEXCHANGE state\n");
       }
       peer->optional_handshake_message = DTLS_HT_CERTIFICATE_REQUEST;
       err = check_server_key_exchange_ecdsa(ctx, peer, data, data_length);

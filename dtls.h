@@ -57,6 +57,13 @@ typedef struct dtls_ecdsa_key_t {
   const unsigned char *pub_key_y;	/** < y part of the public key for the given private key > */
 } dtls_ecdsa_key_t;
 
+#define DTLS_PUBLIC_KEY_HEADER_LENGTH 15
+#define DTLS_PUBLIC_KEY_LENGTH 91
+typedef struct dtls_server_certificate_t
+{
+  const unsigned char *pub_key; /** < the public key  > */
+} dtls_server_certificate_t;
+
 /** Length of the secret that is used for generating Hello Verify cookies. */
 #define DTLS_COOKIE_SECRET_LENGTH 12
 
@@ -151,6 +158,26 @@ typedef struct {
 #endif /* DTLS_PSK */
 
 #ifdef DTLS_ECC
+
+  /**
+   * Called during handshake to get the server's
+   * key used to authenticate this server  in this
+   * session. If found, the key must be stored in @p result and
+   * the return value must be @c 0. If not found, @p result is
+   * undefined and the return value must be less than zero.
+   *
+   * If ECDSA should not be supported, set this pointer to NULL.
+   *
+   * @param ctx     The current dtls context.
+   * @param session The session where the key will be used.
+   * @param result  Must be set to the key object to used for the given
+   *                session.
+   * @return @c 0 if result is set, or less than zero on error.
+   */
+  int (*get_server_certificate)(struct dtls_context_t *ctx,
+                                const session_t *session,
+                                const dtls_server_certificate_t **result);
+                                
   /**
    * Called during handshake to get the server's or client's ecdsa
    * key used to authenticate this server or client in this 
