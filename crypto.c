@@ -31,11 +31,21 @@
 #include "dtls.h"
 #include "crypto.h"
 #include "ccm.h"
-#include "ecc/ecc.h"
+#include "uECC.h"
 #include "dtls_prng.h"
 #include "netq.h"
 
 #include "dtls_mutex.h"
+
+#ifndef uECC_CURVE
+#define ECC_CURVE uECC_secp256r1()
+#endif
+#define SIGN_HASH_SIZE 32
+#define ECDSA_SIGN_SIZE 64
+#define ECDH_PUB_KEY_SIZE 64
+#define ECDH_PUB_KEY_X_SIZE 32
+#define ECDH_PUB_KEY_Y_SIZE 32
+#define ECDH_PRIV_KEY_SIZE 32
 
 #ifdef WITH_ZEPHYR
 LOG_MODULE_DECLARE(TINYDTLS, CONFIG_TINYDTLS_LOG_LEVEL);
@@ -76,6 +86,7 @@ static void dtls_cipher_context_release(void)
 #if !(defined (WITH_CONTIKI)) && !(defined (RIOT_VERSION))
 void crypto_init(void)
 {
+    uECC_set_rng(dtls_prng);
 }
 
 static dtls_handshake_parameters_t *dtls_handshake_malloc(void) {
@@ -102,6 +113,7 @@ MEMB(security_storage, dtls_security_parameters_t, DTLS_SECURITY_MAX);
 void crypto_init(void) {
   memb_init(&handshake_storage);
   memb_init(&security_storage);
+  uECC_set_rng(dtls_prng);
 }
 
 static dtls_handshake_parameters_t *dtls_handshake_malloc(void) {
@@ -125,6 +137,7 @@ static void dtls_security_dealloc(dtls_security_parameters_t *security) {
 void crypto_init(void) {
   memarray_init(&handshake_storage, handshake_storage_data, sizeof(dtls_handshake_parameters_t), DTLS_HANDSHAKE_MAX);
   memarray_init(&security_storage, security_storage_data, sizeof(dtls_security_parameters_t), DTLS_SECURITY_MAX);
+  uECC_set_rng(dtls_prng);
 }
 
 static dtls_handshake_parameters_t *dtls_handshake_malloc(void) {
@@ -438,23 +451,18 @@ int dtls_ecdh_pre_master_secret(unsigned char *priv_key,
                                    size_t key_size,
                                    unsigned char *result,
                                    size_t result_len) {
-  uint32_t priv[8];
-  uint32_t pub_x[8];
-  uint32_t pub_y[8];
-  uint32_t result_x[8];
-  uint32_t result_y[8];
 
-  if (result_len < key_size) {
+  uint8_t pub_key_copy[ECDH_PUB_KEY_SIZE];
+  uint8_t priv_key_copy[ECDH_PRIV_KEY_SIZE];
+  if (result_len < key_size)
+  {
     return -1;
   }
+  memcpy(pub_key_copy, pub_key_x, ECDH_PUB_KEY_X_SIZE);
+  memcpy(pub_key_copy + ECDH_PUB_KEY_X_SIZE, pub_key_y, ECDH_PUB_KEY_Y_SIZE);
+  memcpy(priv_key_copy, priv_key, ECDH_PRIV_KEY_SIZE);
+  uECC_shared_secret(pub_key_copy, priv_key_copy, result, ECC_CURVE);
 
-  dtls_ec_key_to_uint32(priv_key, key_size, priv);
-  dtls_ec_key_to_uint32(pub_key_x, key_size, pub_x);
-  dtls_ec_key_to_uint32(pub_key_y, key_size, pub_y);
-
-  ecc_ecdh(pub_x, pub_y, priv, result_x, result_y);
-
-  dtls_ec_key_from_uint32(result_x, key_size, result);
   return key_size;
 }
 
@@ -463,19 +471,14 @@ dtls_ecdsa_generate_key(unsigned char *priv_key,
 			unsigned char *pub_key_x,
 			unsigned char *pub_key_y,
 			size_t key_size) {
-  uint32_t priv[8];
-  uint32_t pub_x[8];
-  uint32_t pub_y[8];
 
-  do {
-    dtls_prng((unsigned char *)priv, key_size);
-  } while (!ecc_is_valid_key(priv));
+  uint8_t tmp_pub_key[ECDH_PUB_KEY_SIZE];
+  uint8_t tmp_priv_key[ECDH_PRIV_KEY_SIZE];
+  uECC_make_key(tmp_pub_key, tmp_priv_key, ECC_CURVE);
 
-  ecc_gen_pub_key(priv, pub_x, pub_y);
-
-  dtls_ec_key_from_uint32(priv, key_size, priv_key);
-  dtls_ec_key_from_uint32(pub_x, key_size, pub_key_x);
-  dtls_ec_key_from_uint32(pub_y, key_size, pub_key_y);
+  memcpy(pub_key_x, tmp_pub_key, ECDH_PUB_KEY_X_SIZE);
+  memcpy(pub_key_y, tmp_pub_key + ECDH_PUB_KEY_X_SIZE, ECDH_PUB_KEY_Y_SIZE);
+  memcpy(priv_key, tmp_priv_key, ECDH_PRIV_KEY_SIZE);
 }
 
 /* rfc4492#section-5.4 */
@@ -483,17 +486,22 @@ void
 dtls_ecdsa_create_sig_hash(const unsigned char *priv_key, size_t key_size,
 			   const unsigned char *sign_hash, size_t sign_hash_size,
 			   uint32_t point_r[9], uint32_t point_s[9]) {
-  int ret;
-  uint32_t priv[8];
-  uint32_t hash[8];
-  uint32_t randv[8];
   
-  dtls_ec_key_to_uint32(priv_key, key_size, priv);
-  dtls_ec_key_to_uint32(sign_hash, sign_hash_size, hash);
-  do {
-    dtls_prng((unsigned char *)randv, key_size);
-    ret = ecc_ecdsa_sign(priv, hash, randv, point_r, point_s);
-  } while (ret);
+  uint8_t sign[ECDSA_SIGN_SIZE];
+
+  // Check the buffers
+  if (priv_key == NULL || key_size < 32)
+    return;
+  if (sign_hash == NULL || sign_hash_size < 32)
+    return;
+  uECC_sign(priv_key, sign_hash, sign_hash_size, sign, ECC_CURVE);
+  int i;
+  for (i = 0; i < 32; i++)
+  {
+    ((uint8_t *)point_r)[i] = sign[31 - i];
+    ((uint8_t *)point_s)[i] = sign[63 - i];
+  }
+
 }
 
 void
@@ -521,19 +529,28 @@ dtls_ecdsa_verify_sig_hash(const unsigned char *pub_key_x,
 			   const unsigned char *pub_key_y, size_t key_size,
 			   const unsigned char *sign_hash, size_t sign_hash_size,
 			   unsigned char *result_r, unsigned char *result_s) {
-  uint32_t pub_x[8];
-  uint32_t pub_y[8];
-  uint32_t hash[8];
-  uint32_t point_r[8];
-  uint32_t point_s[8];
 
-  dtls_ec_key_to_uint32(pub_key_x, key_size, pub_x);
-  dtls_ec_key_to_uint32(pub_key_y, key_size, pub_y);
-  dtls_ec_key_to_uint32(result_r, key_size, point_r);
-  dtls_ec_key_to_uint32(result_s, key_size, point_s);
-  dtls_ec_key_to_uint32(sign_hash, sign_hash_size, hash);
+  uint8_t pub_key_copy[ECDH_PUB_KEY_SIZE];
+  uint8_t hash_val[SIGN_HASH_SIZE];
+  uint8_t sign[ECDSA_SIGN_SIZE];
 
-  return ecc_ecdsa_validate(pub_x, pub_y, hash, point_r, point_s);
+  // Check the buffers
+  if (pub_key_x == NULL || pub_key_y == NULL || key_size < 32)
+    return 0;
+  if (sign_hash == NULL || sign_hash_size < 32)
+    return 0;
+  if (result_r == NULL || result_s == NULL)
+    return 0;
+
+  // Copy the public key into a single buffer
+  memcpy(pub_key_copy, pub_key_x, ECDH_PUB_KEY_X_SIZE);
+  memcpy(pub_key_copy + ECDH_PUB_KEY_X_SIZE, pub_key_y, ECDH_PUB_KEY_Y_SIZE);
+
+  // Copy the signature into a single buffer
+  memcpy(sign, result_r, 32);
+  memcpy(sign + 32, result_s, 32);
+
+  return uECC_verify(pub_key_copy, hash_val, SIGN_HASH_SIZE, sign, ECC_CURVE);
 }
 
 int
