@@ -42,8 +42,8 @@ typedef int in_port_t;
 #include "global.h"
 #include "dtls_debug.h"
 
-#ifndef min
-#define min(a,b) ((a) < (b) ? (a) : (b))
+#ifndef min2
+#define min2(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
 #ifdef WITH_ZEPHYR

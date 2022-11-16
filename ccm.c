@@ -111,7 +111,7 @@ add_auth_data(rijndael_ctx *ctx, const unsigned char *msg, uint64_t la,
   dtls_int_to_uint16(B, la);
 #endif /* WITH_CONTIKI */
 
-    i = min(DTLS_CCM_BLOCKSIZE - j, la);
+    i = min2(DTLS_CCM_BLOCKSIZE - j, la);
     memcpy(B + j, msg, i);
     la -= i;
     msg += i;

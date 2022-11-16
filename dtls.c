@@ -130,7 +130,7 @@ memarray_t dtlscontext_storage;
 #define DTLS_SKEXECPSK_LENGTH_MIN 2
 #define DTLS_SKEXECPSK_LENGTH_MAX 2 + DTLS_PSK_MAX_CLIENT_IDENTITY_LEN
 #define DTLS_CKXPSK_LENGTH_MIN 2
-#define DTLS_CKXEC_LENGTH (1 + 1 + max(DTLS_EC_KEY_SIZE + DTLS_EC_KEY_SIZE, DTLS_PSK_MAX_CLIENT_IDENTITY_LEN))
+#define DTLS_CKXEC_LENGTH (1 + 1 + max2(DTLS_EC_KEY_SIZE + DTLS_EC_KEY_SIZE, DTLS_PSK_MAX_CLIENT_IDENTITY_LEN))
 #define DTLS_CV_LENGTH (1 + 1 + 2 + 1 + 1 + 1 + 1 + DTLS_EC_KEY_SIZE + 1 + 1 + DTLS_EC_KEY_SIZE)
 #define DTLS_FIN_LENGTH 12
 
@@ -2628,7 +2628,7 @@ dtls_send_client_key_exchange(dtls_context_t *ctx, dtls_peer_t *peer)
     len = CALL(ctx, get_psk_info, &peer->session, DTLS_PSK_IDENTITY,
 	       handshake->keyx.psk.identity, handshake->keyx.psk.id_length,
 	       buf + sizeof(uint16),
-	       min(sizeof(buf) - sizeof(uint16),
+	       min2(sizeof(buf) - sizeof(uint16),
 		   sizeof(handshake->keyx.psk.identity)));
     if (len < 0) {
       dtls_crit("no psk identity set in kx\n");

@@ -20,12 +20,12 @@
 
 #include <stdint.h>
 
-#ifndef min
-#define min(A,B) ((A) <= (B) ? (A) : (B))
+#ifndef min2
+#define min2(A,B) ((A) <= (B) ? (A) : (B))
 #endif
 
-#ifndef max
-#define max(A,B) ((A) < (B) ? (B) : (A))
+#ifndef max2
+#define max2(A,B) ((A) < (B) ? (B) : (A))
 #endif
 
 /* this one is for consistency... */
