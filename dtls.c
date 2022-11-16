@@ -192,6 +192,9 @@ static const unsigned char server_key_header[] = {0x0b, 0x00, 0x00, 0x5e, 0x00, 
 
 PROCESS(dtls_retransmit_process, "DTLS retransmit process");
 
+#endif /* WITH_CONTIKI */
+
+#if defined(WITH_CONTIKI) ||  defined(WITH_LWIP)
 static dtls_context_t the_dtls_context;
 
 static inline dtls_context_t *
@@ -201,9 +204,10 @@ malloc_context(void) {
 
 static inline void
 free_context(dtls_context_t *context) {
+  (void)context;
 }
 
-#endif /* WITH_CONTIKI */
+#endif /* WITH_CONTIKI || WITH_LWIP */
 
 #ifdef RIOT_VERSION
 static inline dtls_context_t *
@@ -1730,8 +1734,9 @@ static unsigned char sendbuf[DTLS_MAX_BUF];
  * @param security        The encryption paramater used to encrypt.
  * @param session         The transport address of the remote peer.
  * @param type            The content type of this record.
- * @param buf             The data to send.
- * @param buflen          The number of bytes to send from @p buf.
+ * @param buf_array       The array of data to send.
+ * @param buf_len_array   The number of bytes in each array element.
+ * @param buf_array_len   The number of array elements.
  * @return Less than zero in case of an error or the number of
  *   bytes that have been sent otherwise.
  */
@@ -1929,6 +1934,7 @@ dtls_destroy_peer(dtls_context_t *ctx, dtls_peer_t *peer, int flags) {
  * \param ephemeral_peer   The remote party we are talking to, if any.
  * \param data             The received datagram.
  * \param data_length      Length of \p msg.
+ *
  * \return \c 0 if msg is a ClientHello with a valid cookie, \c 1 or
  * \c -1 otherwise.
  */
