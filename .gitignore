@@ -35,7 +35,6 @@ ecc/testfield
 *.map
 obj_*
 dtls_config.h.in
-dtls_config.h
 *.apple2enh
 *.atarixl
 *.avr-atmega128rfa1
