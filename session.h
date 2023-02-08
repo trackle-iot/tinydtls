@@ -73,7 +73,7 @@ typedef struct {
 #include <net/socket.h>
 #endif /* HAVE_NET_SOCKET_H */
 
-#elif defined(WITH_LWIP)
+#elif defined(WITH_LWIP) || defined(IS_MBEDOS)
 #include "lwip/sockets.h"
 #undef write
 #undef read

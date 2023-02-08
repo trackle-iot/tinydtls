@@ -63,7 +63,7 @@ typedef uint32_t clock_time_t;
 
 typedef int64_t clock_time_t;
 
-#elif defined(WITH_LWIP)
+#elif defined(WITH_LWIP) || defined(IS_MBEDOS)
 #include "lwip/sys.h"
 
 #ifndef CLOCK_SECOND

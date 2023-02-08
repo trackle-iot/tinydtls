@@ -66,7 +66,7 @@ dtls_ticks(dtls_tick_t *t) {
   *t = k_uptime_get();
 }
 
-#elif defined(WITH_LWIP)
+#elif defined(WITH_LWIP) || defined(IS_MBEDOS)
 
 void
 dtls_clock_init(void) {

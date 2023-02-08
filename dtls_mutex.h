@@ -32,7 +32,7 @@ typedef mutex_t dtls_mutex_t;
 #define dtls_mutex_trylock(a) mutex_trylock(a)
 #define dtls_mutex_unlock(a) mutex_unlock(a)
 
-#elif defined(WITH_CONTIKI)
+#elif defined(WITH_CONTIKI) || defined(IS_MBEDOS)
 
 /* CONTIKI does not support mutex */
 
@@ -42,7 +42,7 @@ typedef int dtls_mutex_t;
 #define dtls_mutex_trylock(a) *(a) = 1
 #define dtls_mutex_unlock(a) *(a) = 0
 
-#elif defined(WITH_ZEPHYR) || defined(IS_WINDOWS)
+#elif defined(WITH_ZEPHYR) || defined(IS_WINDOWS) || defined(WITH_LWIP)
 
 /* zephyr supports mutex, but this port doesn't use it */
 

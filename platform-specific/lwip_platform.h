@@ -71,7 +71,7 @@
 
 
 /** do not use uthash's hash tables (the tables uses malloc/free) */
-#define DTLS_PEERS_NOHASH 1
+// #define DTLS_PEERS_NOHASH 1
 
 /*
  * INFORMATION SHA2/ LIBRARY VARIABLES

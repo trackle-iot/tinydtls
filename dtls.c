@@ -194,7 +194,7 @@ PROCESS(dtls_retransmit_process, "DTLS retransmit process");
 
 #endif /* WITH_CONTIKI */
 
-#if defined(WITH_CONTIKI) ||  defined(WITH_LWIP)
+#if defined(WITH_CONTIKI) || defined(WITH_LWIP) || defined(IS_MBEDOS)
 static dtls_context_t the_dtls_context;
 
 static inline dtls_context_t *
@@ -207,7 +207,7 @@ free_context(dtls_context_t *context) {
   (void)context;
 }
 
-#endif /* WITH_CONTIKI || WITH_LWIP */
+#endif /* WITH_CONTIKI || WITH_LWIP || IS_MBEDOS*/
 
 #ifdef RIOT_VERSION
 static inline dtls_context_t *

@@ -33,7 +33,7 @@
 #elif defined (IS_WINDOWS)
 #include "platform-specific/dtls_prng_win.c"
 
-#elif defined (WITH_LWIP)
+#elif defined (WITH_LWIP) || defined (IS_MBEDOS)
 #include "platform-specific/dtls_prng_lwip.c"
 
 #elif defined (WITH_POSIX)

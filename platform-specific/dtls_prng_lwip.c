@@ -18,6 +18,8 @@
 #include "tinydtls.h"
 #include "dtls_prng.h"
 #include <string.h>
+#include <cc.h>
+#include "arch.h"
 
 int
 dtls_prng(unsigned char *buf, size_t len) {

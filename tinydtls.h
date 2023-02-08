@@ -38,11 +38,12 @@
 
 #define WITH_SHA256 1
 
-#ifdef WITH_LWIP
+#if defined WITH_LWIP || defined(IS_MBEDOS)
 #include "platform-specific/lwip_platform.h"
-#endif /* WITH_LWIP */
+#endif
 
 #ifndef WITH_LWIP
+#ifndef IS_MBEDOS
 #ifndef CONTIKI
 #ifndef RIOT_VERSION
 #ifndef IS_WINDOWS
@@ -56,6 +57,7 @@
 #include "dtls_config.h"
 #endif /* RIOT_VERSION */
 #endif /* CONTIKI */
+#endif /* IS_MBEDOS */
 #endif /* WITH_LWIP */
 
 #ifndef DTLS_ECC
