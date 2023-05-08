@@ -80,6 +80,8 @@ _dtls_address_equals_impl(const session_t *a,
    return a->addr.sin6.sin6_port == b->addr.sin6.sin6_port && 
      memcmp(&a->addr.sin6.sin6_addr, &b->addr.sin6.sin6_addr, 
 	    sizeof(struct in6_addr)) == 0;
+ case 0: // WORKAROUND: if session_t not used to store socket info
+   return 1; 
  default: /* fall through and signal error */
    ;
  }
