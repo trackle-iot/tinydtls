@@ -6,7 +6,7 @@
  * and Eclipse Distribution License v. 1.0 which accompanies this distribution.
  *
  * The Eclipse Public License is available at http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at 
+ * and the Eclipse Distribution License is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
@@ -25,42 +25,33 @@
 #include "session.h"
 
 /** Pre-defined log levels akin to what is used in \b syslog. */
-typedef enum { DTLS_LOG_EMERG=0, DTLS_LOG_ALERT, DTLS_LOG_CRIT, DTLS_LOG_WARN, 
-       DTLS_LOG_NOTICE, DTLS_LOG_INFO, DTLS_LOG_DEBUG
+typedef enum
+{
+       DTLS_LOG_EMERG = 0,
+       DTLS_LOG_ALERT,
+       DTLS_LOG_CRIT,
+       DTLS_LOG_WARN,
+       DTLS_LOG_NOTICE,
+       DTLS_LOG_INFO,
+       DTLS_LOG_DEBUG
 } log_t;
 
-/** Returns the current log level. */
-log_t dtls_get_log_level(void);
+// Pointer to logger function
+extern void (*TinyDtls_logCallback)(unsigned int, const char *, ...);
 
-/** Sets the log level to the specified value. */
-void dtls_set_log_level(log_t level);
+// Dump logger function
+void TinyDtls_logBuffer(unsigned int level, const char *name, const unsigned char *buff, int len);
 
-/**
- * Logging callback handler definition.
- *
- * Note: The maximum message length is controlled by the size of the definition
- * for DTLS_DEBUG_BUF_SIZE (default 128) less 1 for the zero termination.
- *
- * @param level One of the DTLS_LOG_* values.
- * @param message Zero-terminated string message to log.
- */
-typedef void (*dtls_log_handler_t) (log_t level, const char *message);
+#define dtls_emerg(...) TinyDtls_logCallback(DTLS_LOG_EMERG, __VA_ARGS__)
+#define dtls_alert(...) TinyDtls_logCallback(DTLS_LOG_ALERT, __VA_ARGS__)
+#define dtls_crit(...) TinyDtls_logCallback(DTLS_LOG_CRIT, __VA_ARGS__)
+#define dtls_warn(...) TinyDtls_logCallback(DTLS_LOG_WARN, __VA_ARGS__)
+#define dtls_notice(...) TinyDtls_logCallback(DTLS_LOG_NOTICE, __VA_ARGS__)
+#define dtls_info(...) TinyDtls_logCallback(DTLS_LOG_INFO, __VA_ARGS__)
+#define dtls_debug(...) TinyDtls_logCallback(DTLS_LOG_DEBUG, __VA_ARGS__)
+#define dtls_debug_hexdump(name, buf, length) TinyDtls_logBuffer(DTLS_LOG_DEBUG, name, buf, length)
+#define dtls_debug_dump(name, buf, length) TinyDtls_logBuffer(DTLS_LOG_DEBUG, name, buf, length)
 
-/**
- * Add a custom log callback handler.
- *
- * @param app_handler The logging handler to use or @p NULL to use default handler.
- */
-void dtls_set_log_handler(dtls_log_handler_t app_handler);
-
-#define dtls_emerg(...) dsrv_log(DTLS_LOG_EMERG, __VA_ARGS__)
-#define dtls_alert(...) dsrv_log(DTLS_LOG_ALERT, __VA_ARGS__)
-#define dtls_crit(...) dsrv_log(DTLS_LOG_CRIT, __VA_ARGS__)
-#define dtls_warn(...) dsrv_log(DTLS_LOG_WARN, __VA_ARGS__)
-#define dtls_notice(...) dsrv_log(DTLS_LOG_NOTICE, __VA_ARGS__)
-#define dtls_info(...) dsrv_log(DTLS_LOG_INFO, __VA_ARGS__)
-#define dtls_debug(...) dsrv_log(DTLS_LOG_DEBUG, __VA_ARGS__)
-#define dtls_debug_hexdump(name, buf, length) dtls_dsrv_hexdump_log(DTLS_LOG_DEBUG, name, buf, length, 1)
-#define dtls_debug_dump(name, buf, length) dtls_dsrv_hexdump_log(DTLS_LOG_DEBUG, name, buf, length, 0)
+#define dtls_dsrv_log_addr(level, name, addr) TinyDtls_logCallback(level, "%s session", name)
 
 #endif /* _DTLS_DEBUG_H_ */

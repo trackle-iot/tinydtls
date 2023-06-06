@@ -24,6 +24,13 @@
 #ifndef _DTLS_TINYDTLS_H_
 #define _DTLS_TINYDTLS_H_
 
+/**
+ * @brief Add log function that accepts log level as first parameter.
+ *
+ * @param logCallback Log function to use.
+ */
+void TinyDtls_set_log_callback(void (*logCallback)(unsigned int, const char *, ...));
+
 #ifdef RIOT_VERSION
 #include "platform-specific/riot_boards.h"
 #endif /* RIOT_VERSION */
