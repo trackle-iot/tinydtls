@@ -35,10 +35,6 @@ void TinyDtls_set_log_callback(void (*logCallback)(unsigned int, const char *, .
 #include "platform-specific/riot_boards.h"
 #endif /* RIOT_VERSION */
 
-#ifdef CONTIKI
-#include "platform-specific/platform.h"
-#endif /* CONTIKI */
-
 #if defined(_WIN32) || defined(_WIN64)
 #define IS_WINDOWS 1
 #endif
