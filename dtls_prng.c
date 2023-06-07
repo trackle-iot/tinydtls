@@ -6,7 +6,7 @@
  * and Eclipse Distribution License v. 1.0 which accompanies this distribution.
  *
  * The Eclipse Public License is available at http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at 
+ * and the Eclipse Distribution License is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
@@ -16,30 +16,33 @@
  *
  *******************************************************************************/
 
+#include <stdlib.h>
+#include <inttypes.h>
+
 #include "tinydtls.h"
 
-#if defined (WITH_CONTIKI)
-#include "platform-specific/dtls_prng_contiki.c"
+static uint32_t defaultRand()
+{
+    return (uint32_t)rand();
+}
 
-#elif defined (WITH_ESPIDF)
-#include "platform-specific/dtls_prng_espidf.c"
+static uint32_t (*customRand)() = defaultRand;
 
-#elif defined (RIOT_VERSION)
-#include "platform-specific/dtls_prng_riot.c"
+void TinyDtls_set_rand(uint32_t (*newCustomRand)())
+{
+    customRand = newCustomRand;
+}
 
-#elif defined (WITH_ZEPHYR)
-#include "platform-specific/dtls_prng_zephyr.c"
+int dtls_prng(unsigned char *buf, size_t len)
+{
+    size_t klen = len;
+    while (len--)
+        *buf++ = customRand() & 0xFF;
+    return klen;
+}
 
-#elif defined (IS_WINDOWS)
-#include "platform-specific/dtls_prng_win.c"
-
-#elif defined (WITH_LWIP) || defined (IS_MBEDOS)
-#include "platform-specific/dtls_prng_lwip.c"
-
-#elif defined (WITH_POSIX)
-#include "platform-specific/dtls_prng_posix.c"
-
-#else
-#error platform specific prng not defined
-
-#endif
+void dtls_prng_init(unsigned seed)
+{
+    (void)seed;
+    // Nothing to do here. Seed initialization is done outside, in Trackle Library.
+}
