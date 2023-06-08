@@ -94,7 +94,6 @@
 #  define DTLS_SECURITY_MAX (DTLS_PEER_MAX + DTLS_HANDSHAKE_MAX)
 #endif
 
-/* TODO: Adapt this to RIOT (currently is only for Contiki) */
 #ifndef DTLS_HASH_MAX
 /** The maximum number of hash functions that can be used in parallel. */
 #  define DTLS_HASH_MAX (3 * DTLS_PEER_MAX)

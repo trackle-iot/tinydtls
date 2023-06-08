@@ -244,9 +244,6 @@ typedef struct dtls_context_t {
   clock_time_t cookie_secret_age; /**< the time the secret has been generated */
 
   dtls_peer_t *peers;		/**< peer hash map */
-#ifdef WITH_CONTIKI
-  struct etimer retransmit_timer; /**< fires when the next packet must be sent */
-#endif /* WITH_CONTIKI */
 
   struct netq_t *sendqueue;     /**< the packets to send */
 
@@ -497,7 +494,7 @@ void dtls_reset_peer(dtls_context_t *context, dtls_peer_t *peer);
  * @subsection uthash UTHash
  *
  * This library uses <a href="http://uthash.sourceforge.net/">uthash</a> to manage
- * its peers (not used for Contiki). @b uthash uses the <b>BSD revised license</b>, see
+ * its peers. @b uthash uses the <b>BSD revised license</b>, see
  * <a href="http://uthash.sourceforge.net/license.html">http://uthash.sourceforge.net/license.html</a>.
  *
  * @subsection sha256 Aaron D. Gifford's SHA256 Implementation
@@ -522,9 +519,6 @@ void dtls_reset_peer(dtls_context_t *context, dtls_peer_t *peer);
  *
  * @section config Configuration
  *
- * Use @c configure to set up everything for a successful build. For Contiki, use the
- * option @c --with-contiki.
- *
  * @section build Building
  *
  * After configuration, just type 
@@ -535,9 +529,6 @@ make
  * @code
 make install
  * @endcode
- * The Contiki version is integrated with the Contiki build system, hence you do not
- * need to invoke @c make explicitely. Just add @c tinydtls to the variable @c APPS
- * in your @c Makefile.
  *
  * @addtogroup dtls_usage DTLS Usage
  *
@@ -714,94 +705,4 @@ int handle_event(struct dtls_context_t *ctx, session_t *session,
  * must register an event handler and wait for @c DTLS_EVENT_CONNECT before
  * it can send data over the DTLS channel.
  *
- */
-
-/**
- * @addtogroup contiki Contiki
- *
- * To use tinyDTLS as Contiki application, place the source code in the directory 
- * @c apps/tinydtls in the Contiki source tree and invoke configure with the option
- * @c --with-contiki. This will define WITH_CONTIKI in tinydtls.h and include 
- * @c Makefile.contiki in the main Makefile. To cross-compile for another platform
- * you will need to set your host and build system accordingly. For example,
- * when configuring for ARM, you would invoke
- * @code
-./configure --with-contiki --build=x86_64-linux-gnu --host=arm-none-eabi 
- * @endcode
- * on an x86_64 linux host.
- *
- * Then, create a Contiki project with @c APPS += tinydtls in its Makefile. A sample
- * server could look like this (with read_from_peer() and get_psk_key() as shown above).
- *
- * @code
-#include "contiki.h"
-
-#include "tinydtls.h"
-#include "dtls.h"
-
-#define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define UIP_UDP_BUF  ((struct uip_udp_hdr *)&uip_buf[UIP_LLIPH_LEN])
-
-int send_to_peer(struct dtls_context_t *, session_t *, uint8 *, size_t);
-
-static struct uip_udp_conn *server_conn;
-static dtls_context_t *dtls_context;
-
-static dtls_handler_t cb = {
-  .write = send_to_peer,
-  .read  = read_from_peer,
-  .event = NULL,
-  .get_psk_key = get_psk_key
-};
-
-PROCESS(server_process, "DTLS server process");
-AUTOSTART_PROCESSES(&server_process);
-
-PROCESS_THREAD(server_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  dtls_init();
-
-  server_conn = udp_new(NULL, 0, NULL);
-  udp_bind(server_conn, UIP_HTONS(5684));
-
-  dtls_context = dtls_new_context(server_conn);
-  if (!dtls_context) {
-    dtls_emerg("cannot create context\n");
-    PROCESS_EXIT();
-  }
-
-  dtls_set_handler(dtls_context, &cb);
-
-  while(1) {
-    PROCESS_WAIT_EVENT();
-    if(ev == tcpip_event && uip_newdata()) {
-      session_t session;
-
-      uip_ipaddr_copy(&session.addr, &UIP_IP_BUF->srcipaddr);
-      session.port = UIP_UDP_BUF->srcport;
-      session.size = sizeof(session.addr) + sizeof(session.port);
-    
-      dtls_handle_message(ctx, &session, uip_appdata, uip_datalen());
-    }
-  }
-
-  PROCESS_END();
-}
-
-int send_to_peer(struct dtls_context_t *ctx, session_t *session, uint8 *data, size_t len) {
-  struct uip_udp_conn *conn = (struct uip_udp_conn *)dtls_get_app_data(ctx);
-
-  uip_ipaddr_copy(&conn->ripaddr, &session->addr);
-  conn->rport = session->port;
-
-  uip_udp_packet_send(conn, data, len);
-
-  memset(&conn->ripaddr, 0, sizeof(server_conn->ripaddr));
-  memset(&conn->rport, 0, sizeof(conn->rport));
-
-  return len;
-}
- * @endcode
  */

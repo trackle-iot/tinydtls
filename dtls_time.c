@@ -27,21 +27,7 @@
 #include <windows.h>
 #endif
 
-#ifdef WITH_CONTIKI
-clock_time_t dtls_clock_offset;
-
-void
-dtls_clock_init(void) {
-  clock_init();
-  dtls_clock_offset = clock_time();
-}
-
-void
-dtls_ticks(dtls_tick_t *t) {
-  *t = clock_time();
-}
-
-#elif defined(RIOT_VERSION)
+#ifdef RIOT_VERSION
 
 dtls_tick_t dtls_clock_offset;
 
@@ -114,4 +100,4 @@ void dtls_ticks(dtls_tick_t *t) {
 #endif
 }
 
-#endif /* ! CONTIKI && ! RIOT_VERSION && ! WITH_ZEPHYR && ! WITH_LWIP && ! WITH_POSIX */
+#endif /* ! RIOT_VERSION && ! WITH_ZEPHYR && ! WITH_LWIP && ! WITH_POSIX */

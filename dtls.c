@@ -25,10 +25,8 @@
 #ifdef HAVE_ASSERT_H
 #include <assert.h>
 #endif
-#ifndef WITH_CONTIKI
 #include <stdlib.h>
 #include "global.h"
-#endif /* WITH_CONTIKI */
 #ifdef HAVE_INTTYPES_H
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
@@ -188,13 +186,7 @@ static const unsigned char server_key_header[] = {0x0b, 0x00, 0x00, 0x5e, 0x00, 
 
 #endif /* DTLS_ECC */
 
-#ifdef WITH_CONTIKI
-
-PROCESS(dtls_retransmit_process, "DTLS retransmit process");
-
-#endif /* WITH_CONTIKI */
-
-#if defined(WITH_CONTIKI) || defined(WITH_LWIP) || defined(IS_MBEDOS)
+#if defined(WITH_LWIP) || defined(IS_MBEDOS)
 static dtls_context_t the_dtls_context;
 
 static inline dtls_context_t *
@@ -207,7 +199,7 @@ free_context(dtls_context_t *context) {
   (void)context;
 }
 
-#endif /* WITH_CONTIKI || WITH_LWIP || IS_MBEDOS*/
+#endif /* WITH_LWIP || IS_MBEDOS*/
 
 #ifdef RIOT_VERSION
 static inline dtls_context_t *
@@ -1815,15 +1807,7 @@ dtls_send_multi(dtls_context_t *ctx, dtls_peer_t *peer,
       if (!netq_insert_node(&ctx->sendqueue, n)) {
         dtls_warn("cannot add packet to retransmit buffer\n");
         netq_node_free(n);
-#ifdef WITH_CONTIKI
-      } else {
-        /* must set timer within the context of the retransmit process */
-        PROCESS_CONTEXT_BEGIN(&dtls_retransmit_process);
-        etimer_set(&ctx->retransmit_timer, n->timeout);
-        PROCESS_CONTEXT_END(&dtls_retransmit_process);
-#else /* WITH_CONTIKI */
         dtls_debug("copied to sendqueue\n");
-#endif /* WITH_CONTIKI */
       }
     } else {
       dtls_warn("retransmit buffer full\n");
@@ -1873,15 +1857,7 @@ dtls_send_alert(dtls_context_t *ctx, dtls_peer_t *peer, dtls_alert_level_t level
       dtls_warn("cannot add alert to retransmit buffer\n");
       netq_node_free(n);
       n = NULL;
-#ifdef WITH_CONTIKI
-    } else {
-      /* must set timer within the context of the retransmit process */
-      PROCESS_CONTEXT_BEGIN(&dtls_retransmit_process);
-      etimer_set(&ctx->retransmit_timer, n->timeout);
-      PROCESS_CONTEXT_END(&dtls_retransmit_process);
-#else /* WITH_CONTIKI */
       dtls_debug("alert copied to retransmit buffer\n");
-#endif /* WITH_CONTIKI */
     }
   } else {
     dtls_warn("cannot add alert, retransmit buffer full\n");
@@ -4236,14 +4212,6 @@ handle_alert(dtls_context_t *ctx, dtls_peer_t *peer,
 
     DEL_PEER(ctx->peers, peer);
 
-#ifdef WITH_CONTIKI
-#ifndef NDEBUG
-    PRINTF("removed peer [");
-    PRINT6ADDR(&peer->session.addr);
-    PRINTF("]:%d\n", uip_ntohs(peer->session.port));
-#endif
-#endif /* WITH_CONTIKI */
-
     free_peer = 1;
 
   }
@@ -4548,14 +4516,6 @@ dtls_new_context(void *app_data) {
   memset(c, 0, sizeof(dtls_context_t));
   c->app = app_data;
 
-#ifdef WITH_CONTIKI
-  process_start(&dtls_retransmit_process, (char *)c);
-  PROCESS_CONTEXT_BEGIN(&dtls_retransmit_process);
-  /* the retransmit timer must be initialized to some large value */
-  etimer_set(&c->retransmit_timer, 0xFFFF);
-  PROCESS_CONTEXT_END(&coap_retransmit_process);
-#endif /* WITH_CONTIKI */
-
   if (dtls_prng(c->cookie_secret, DTLS_COOKIE_SECRET_LENGTH))
     c->cookie_secret_age = now;
   else
@@ -4766,45 +4726,3 @@ dtls_check_retransmit(dtls_context_t *context, clock_time_t *next) {
     *next = node ? node->t : 0;
   }
 }
-
-#ifdef WITH_CONTIKI
-/*---------------------------------------------------------------------------*/
-/* message retransmission */
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(dtls_retransmit_process, ev, data)
-{
-  clock_time_t now;
-  netq_t *node;
-
-  PROCESS_BEGIN();
-
-  dtls_debug("Started DTLS retransmit process\r\n");
-
-  while(1) {
-    PROCESS_YIELD();
-    if (ev == PROCESS_EVENT_TIMER) {
-      if (etimer_expired(&the_dtls_context.retransmit_timer)) {
-
-	node = netq_head(&the_dtls_context.sendqueue);
-
-	now = clock_time();
-	if (node && node->t <= now) {
-	  netq_pop_first(&the_dtls_context.sendqueue);
-	  dtls_retransmit(&the_dtls_context, node);
-	  node = netq_head(&the_dtls_context.sendqueue);
-	}
-
-	/* need to set timer to some value even if no nextpdu is available */
-	if (node) {
-	  etimer_set(&the_dtls_context.retransmit_timer,
-		     node->t <= now ? 1 : node->t - now);
-	} else {
-	  etimer_set(&the_dtls_context.retransmit_timer, 0xFFFF);
-	}
-      }
-    }
-  }
-
-  PROCESS_END();
-}
-#endif /* WITH_CONTIKI */

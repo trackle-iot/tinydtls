@@ -37,10 +37,7 @@
  * @{
  */
 
-#ifdef WITH_CONTIKI
-#include "clock.h"
-
-#elif defined(RIOT_VERSION)
+#ifdef RIOT_VERSION
 
 #include "ztimer.h"
 #include "timex.h"
@@ -72,7 +69,7 @@ typedef int64_t clock_time_t;
 
 typedef uint32_t clock_time_t;
 
-#else /* ! WITH_CONTIKI && ! RIOT_VERSION && ! WITH_ZEPHYR && ! WITH_LWIP */
+#else /* ! RIOT_VERSION && ! WITH_ZEPHYR && ! WITH_LWIP */
 
 #ifdef HAVE_TIME_H
 #include <time.h>
@@ -84,7 +81,7 @@ typedef uint32_t clock_time_t;
 
 typedef uint32_t clock_time_t;
 
-#endif /* ! WITH_CONTIKI && ! RIOT_VERSION && ! WITH_ZEPHYR && ! WITH_LWIP */
+#endif /* ! RIOT_VERSION && ! WITH_ZEPHYR && ! WITH_LWIP */
 
 typedef clock_time_t dtls_tick_t;
 

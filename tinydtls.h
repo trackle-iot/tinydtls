@@ -47,7 +47,6 @@ void TinyDtls_set_log_callback(void (*logCallback)(unsigned int, const char *, .
 
 #ifndef WITH_LWIP
 #ifndef IS_MBEDOS
-#ifndef CONTIKI
 #ifndef RIOT_VERSION
 #ifndef IS_WINDOWS
 #ifndef WITH_ESPIDF
@@ -59,7 +58,6 @@ void TinyDtls_set_log_callback(void (*logCallback)(unsigned int, const char *, .
 #endif /* IS_WINDOWS */
 #include "dtls_config.h"
 #endif /* RIOT_VERSION */
-#endif /* CONTIKI */
 #endif /* IS_MBEDOS */
 #endif /* WITH_LWIP */
 

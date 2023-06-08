@@ -19,7 +19,7 @@
 #include "peer.h"
 #include "dtls_debug.h"
 
-#if !(defined (WITH_CONTIKI)) && !(defined (RIOT_VERSION))
+#ifndef RIOT_VERSION
 void peer_init(void)
 {
 }
@@ -36,30 +36,8 @@ dtls_free_peer(dtls_peer_t *peer) {
   dtls_security_free(peer->security_params[1]);
   free(peer);
 }
-#elif defined (WITH_CONTIKI) /* WITH_CONTIKI */
 
-#include "memb.h"
-MEMB(peer_storage, dtls_peer_t, DTLS_PEER_MAX);
-
-void
-peer_init(void) {
-  memb_init(&peer_storage);
-}
-
-static inline dtls_peer_t *
-dtls_malloc_peer(void) {
-  return memb_alloc(&peer_storage);
-}
-
-void
-dtls_free_peer(dtls_peer_t *peer) {
-  dtls_handshake_free(peer->handshake_params);
-  dtls_security_free(peer->security_params[0]);
-  dtls_security_free(peer->security_params[1]);
-  memb_free(&peer_storage, peer);
-}
-
-#elif defined (RIOT_VERSION)
+#else
 # include <memarray.h>
 
 dtls_peer_t peer_storage_data[DTLS_PEER_MAX];
@@ -83,7 +61,7 @@ dtls_free_peer(dtls_peer_t *peer) {
   memarray_free(&peer_storage, peer);
 }
 
-#endif /* WITH_CONTIKI */
+#endif /* RIOT_VERSION */
 
 dtls_peer_t *
 dtls_new_peer(const session_t *session) {
