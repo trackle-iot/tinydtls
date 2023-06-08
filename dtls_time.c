@@ -27,21 +27,7 @@
 #include <windows.h>
 #endif
 
-#ifdef RIOT_VERSION
-
-dtls_tick_t dtls_clock_offset;
-
-void
-dtls_clock_init(void) {
-  dtls_clock_offset = ztimer_now(ZTIMER_MSEC);
-}
-
-void
-dtls_ticks(dtls_tick_t *t) {
-  *t = ztimer_now(ZTIMER_MSEC) - dtls_clock_offset;
-}
-
-#elif defined(WITH_ZEPHYR)
+#ifdef WITH_ZEPHYR
 
 void
 dtls_clock_init(void) {
@@ -100,4 +86,4 @@ void dtls_ticks(dtls_tick_t *t) {
 #endif
 }
 
-#endif /* ! RIOT_VERSION && ! WITH_ZEPHYR && ! WITH_LWIP && ! WITH_POSIX */
+#endif /* ! WITH_ZEPHYR && ! WITH_LWIP && ! WITH_POSIX */

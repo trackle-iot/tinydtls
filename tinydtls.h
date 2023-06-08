@@ -31,10 +31,6 @@
  */
 void TinyDtls_set_log_callback(void (*logCallback)(unsigned int, const char *, ...));
 
-#ifdef RIOT_VERSION
-#include "platform-specific/riot_boards.h"
-#endif /* RIOT_VERSION */
-
 #if defined(_WIN32) || defined(_WIN64)
 #define IS_WINDOWS 1
 #endif
@@ -47,7 +43,6 @@ void TinyDtls_set_log_callback(void (*logCallback)(unsigned int, const char *, .
 
 #ifndef WITH_LWIP
 #ifndef IS_MBEDOS
-#ifndef RIOT_VERSION
 #ifndef IS_WINDOWS
 #ifndef WITH_ESPIDF
 #ifndef WITH_POSIX
@@ -57,7 +52,6 @@ void TinyDtls_set_log_callback(void (*logCallback)(unsigned int, const char *, .
 #endif /* WITH_ESPIDF */
 #endif /* IS_WINDOWS */
 #include "dtls_config.h"
-#endif /* RIOT_VERSION */
 #endif /* IS_MBEDOS */
 #endif /* WITH_LWIP */
 

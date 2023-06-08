@@ -71,13 +71,6 @@ LOG_MODULE_DECLARE(TINYDTLS, CONFIG_TINYDTLS_LOG_LEVEL);
  */
 #define DTLS_DESTROY_CLOSE 0x02
 
-#ifdef RIOT_VERSION
-# include <memarray.h>
-
-dtls_context_t dtlscontext_storage_data[DTLS_CONTEXT_MAX];
-memarray_t dtlscontext_storage;
-#endif /* RIOT_VERSION */
-
 #define dtls_set_version(H,V) dtls_int_to_uint16((H)->version, (V))
 #define dtls_set_content_type(H,V) ((H)->content_type = (V) & 0xff)
 #define dtls_set_length(H,V)  ((H)->length = (V))
@@ -201,17 +194,6 @@ free_context(dtls_context_t *context) {
 
 #endif /* WITH_LWIP || IS_MBEDOS*/
 
-#ifdef RIOT_VERSION
-static inline dtls_context_t *
-malloc_context(void) {
-     return (dtls_context_t *) memarray_alloc(&dtlscontext_storage);
-}
-
-static inline void free_context(dtls_context_t *context) {
-  memarray_free(&dtlscontext_storage, context);
-}
-#endif /* RIOT_VERSION */
-
 #if defined(WITH_POSIX) || defined(IS_WINDOWS) || defined(WITH_ESPIDF)
 
 static inline dtls_context_t *
@@ -233,10 +215,6 @@ dtls_init(void) {
   netq_init();
   peer_init();
 
-#ifdef RIOT_VERSION
-memarray_init(&dtlscontext_storage, dtlscontext_storage_data,
-              sizeof(dtls_context_t), DTLS_CONTEXT_MAX);
-#endif /* RIOT_VERSION */
 }
 
 /* Calls cb_alert() with given arguments if defined, otherwise an

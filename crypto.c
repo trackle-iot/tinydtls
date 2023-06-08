@@ -51,21 +51,6 @@
 LOG_MODULE_DECLARE(TINYDTLS, CONFIG_TINYDTLS_LOG_LEVEL);
 #endif /* WITH_ZEPHYR */
 
-#if defined(RIOT_VERSION)
-# include <memarray.h>
-
-dtls_handshake_parameters_t handshake_storage_data[DTLS_HANDSHAKE_MAX];
-dtls_security_parameters_t security_storage_data[DTLS_SECURITY_MAX];
-dtls_handshake_parameters_t handshake_storage_data[DTLS_HANDSHAKE_MAX];
-dtls_security_parameters_t security_storage_data[DTLS_SECURITY_MAX];
-
-memarray_t handshake_storage;
-memarray_t security_storage;
-memarray_t handshake_storage;
-memarray_t security_storage;
-
-#endif /* RIOT_VERSION */
-
 #define HMAC_UPDATE_SEED(Context,Seed,Length)		\
   if (Seed) dtls_hmac_update(Context, (Seed), (Length))
 
@@ -83,7 +68,6 @@ static void dtls_cipher_context_release(void)
   dtls_mutex_unlock(&cipher_context_mutex);
 }
 
-#if !(defined (RIOT_VERSION))
 void crypto_init(void)
 {
     uECC_set_rng(dtls_prng);
@@ -104,32 +88,6 @@ static dtls_security_parameters_t *dtls_security_malloc(void) {
 static void dtls_security_dealloc(dtls_security_parameters_t *security) {
   free(security);
 }
-
-#elif defined (RIOT_VERSION)
-
-void crypto_init(void) {
-  memarray_init(&handshake_storage, handshake_storage_data, sizeof(dtls_handshake_parameters_t), DTLS_HANDSHAKE_MAX);
-  memarray_init(&security_storage, security_storage_data, sizeof(dtls_security_parameters_t), DTLS_SECURITY_MAX);
-  uECC_set_rng(dtls_prng);
-}
-
-static dtls_handshake_parameters_t *dtls_handshake_malloc(void) {
-  return memarray_alloc(&handshake_storage);
-}
-
-static void dtls_security_dealloc(dtls_security_parameters_t *security) {
-  memarray_free(&security_storage, security);
-}
-
-static dtls_security_parameters_t *dtls_security_malloc(void) {
-  return memarray_alloc(&security_storage);
-}
-
-static void dtls_handshake_dealloc(dtls_handshake_parameters_t *handshake) {
-  memarray_free(&handshake_storage, handshake);
-}
-
-#endif /* RIOT_VERSION */
 
 dtls_handshake_parameters_t *dtls_handshake_new(void)
 {

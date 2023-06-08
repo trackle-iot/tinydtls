@@ -37,20 +37,7 @@
  * @{
  */
 
-#ifdef RIOT_VERSION
-
-#include "ztimer.h"
-#include "timex.h"
-
-/* this macro is already present on FreeBSD
-   which causes a redefine error otherwise */
-#ifndef CLOCK_SECOND
-#define CLOCK_SECOND (MS_PER_SEC)
-#endif
-
-typedef uint32_t clock_time_t;
-
-#elif defined(WITH_ZEPHYR)
+#ifdef WITH_ZEPHYR
 
 #include <zephyr.h>
 
@@ -69,7 +56,7 @@ typedef int64_t clock_time_t;
 
 typedef uint32_t clock_time_t;
 
-#else /* ! RIOT_VERSION && ! WITH_ZEPHYR && ! WITH_LWIP */
+#else /* ! WITH_ZEPHYR && ! WITH_LWIP */
 
 #ifdef HAVE_TIME_H
 #include <time.h>
@@ -81,7 +68,7 @@ typedef uint32_t clock_time_t;
 
 typedef uint32_t clock_time_t;
 
-#endif /* ! RIOT_VERSION && ! WITH_ZEPHYR && ! WITH_LWIP */
+#endif /* ! WITH_ZEPHYR && ! WITH_LWIP */
 
 typedef clock_time_t dtls_tick_t;
 
