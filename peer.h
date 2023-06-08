@@ -134,8 +134,6 @@ static inline void dtls_security_params_switch(dtls_peer_t *peer)
   peer->security_params[0] = security;
 }
 
-void peer_init(void);
-
 /**
  * Creates a new peer for given @p session. The current configuration
  * is initialized with the cipher suite TLS_NULL_WITH_NULL_NULL (i.e.

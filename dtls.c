@@ -212,9 +212,6 @@ void
 dtls_init(void) {
   dtls_clock_init();
   crypto_init();
-  netq_init();
-  peer_init();
-
 }
 
 /* Calls cb_alert() with given arguments if defined, otherwise an

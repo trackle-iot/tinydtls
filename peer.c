@@ -19,10 +19,6 @@
 #include "peer.h"
 #include "dtls_debug.h"
 
-void peer_init(void)
-{
-}
-
 static inline dtls_peer_t *
 dtls_malloc_peer(void) {
   return (dtls_peer_t *)malloc(sizeof(dtls_peer_t));

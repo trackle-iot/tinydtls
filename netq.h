@@ -70,9 +70,6 @@ typedef struct netq_t {
 
 } netq_t;
 
-static inline void netq_init(void)
-{ }
-
 /** 
  * Adds a node to the given queue, ordered by their time-stamp t.
  * This function returns @c 0 on error, or non-zero if @p node has
