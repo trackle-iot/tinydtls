@@ -24,6 +24,8 @@
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
+#warning "DTLS_CONFIG.H IS BEING USED!"
+
 /* Define to 1 if building with ECC support. */
 #define DTLS_ECC 1
 
