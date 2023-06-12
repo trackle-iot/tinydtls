@@ -6,7 +6,7 @@
  * and Eclipse Distribution License v. 1.0 which accompanies this distribution.
  *
  * The Eclipse Public License is available at http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at 
+ * and the Eclipse Distribution License is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
  *
  * Contributors:
@@ -30,7 +30,7 @@ typedef int dtls_mutex_t;
 #define dtls_mutex_trylock(a) *(a) = 1
 #define dtls_mutex_unlock(a) *(a) = 0
 
-#elif defined(WITH_ZEPHYR) || defined(IS_WINDOWS) || defined(WITH_LWIP)
+#elif defined(IS_WINDOWS) || defined(WITH_LWIP)
 
 /* zephyr supports mutex, but this port doesn't use it */
 
@@ -42,8 +42,7 @@ typedef int dtls_mutex_t;
 #define dtls_mutex_trylock(a) *(a) = 1
 #define dtls_mutex_unlock(a) *(a) = 0
 
-
-#else /* ! WITH_ZEPHYR && ! IS_WINDOWS */
+#else /* ! IS_WINDOWS */
 
 #include <pthread.h>
 

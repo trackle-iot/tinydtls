@@ -27,18 +27,7 @@
 #include <windows.h>
 #endif
 
-#ifdef WITH_ZEPHYR
-
-void
-dtls_clock_init(void) {
-}
-
-void
-dtls_ticks(dtls_tick_t *t) {
-  *t = k_uptime_get();
-}
-
-#elif defined(WITH_LWIP) || defined(IS_MBEDOS)
+#if defined(WITH_LWIP) || defined(IS_MBEDOS)
 
 void
 dtls_clock_init(void) {
@@ -86,4 +75,4 @@ void dtls_ticks(dtls_tick_t *t) {
 #endif
 }
 
-#endif /* ! WITH_ZEPHYR && ! WITH_LWIP && ! WITH_POSIX */
+#endif /* ! WITH_LWIP && ! WITH_POSIX */

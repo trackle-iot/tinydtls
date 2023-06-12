@@ -37,17 +37,7 @@
  * @{
  */
 
-#ifdef WITH_ZEPHYR
-
-#include <zephyr.h>
-
-#ifndef CLOCK_SECOND
-# define CLOCK_SECOND 1000
-#endif
-
-typedef int64_t clock_time_t;
-
-#elif defined(WITH_LWIP) || defined(IS_MBEDOS)
+#if defined(WITH_LWIP) || defined(IS_MBEDOS)
 #include "lwip/sys.h"
 
 #ifndef CLOCK_SECOND
@@ -56,7 +46,7 @@ typedef int64_t clock_time_t;
 
 typedef uint32_t clock_time_t;
 
-#else /* ! WITH_ZEPHYR && ! WITH_LWIP */
+#else /* ! WITH_LWIP */
 
 #ifdef HAVE_TIME_H
 #include <time.h>
@@ -68,7 +58,7 @@ typedef uint32_t clock_time_t;
 
 typedef uint32_t clock_time_t;
 
-#endif /* ! WITH_ZEPHYR && ! WITH_LWIP */
+#endif /* ! WITH_LWIP */
 
 typedef clock_time_t dtls_tick_t;
 

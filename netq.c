@@ -28,10 +28,6 @@
 #endif
 #endif
 
-#ifdef WITH_ZEPHYR
-LOG_MODULE_DECLARE(TINYDTLS, CONFIG_TINYDTLS_LOG_LEVEL);
-#endif /* WITH_ZEPHYR */
-
 #include <stdlib.h>
 
 static inline netq_t *
