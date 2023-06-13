@@ -66,7 +66,6 @@ typedef clock_time_t dtls_tick_t;
 #define DTLS_TICKS_PER_SECOND CLOCK_SECOND
 #endif /* DTLS_TICKS_PER_SECOND */
 
-void dtls_clock_init(void);
 void dtls_ticks(dtls_tick_t *t);
 
 /* see https://godbolt.org/z/YchexKaeT */

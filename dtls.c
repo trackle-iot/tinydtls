@@ -206,7 +206,6 @@ free_context(dtls_context_t *context) {
 
 void
 dtls_init(void) {
-  dtls_clock_init();
   crypto_init();
 }
 
