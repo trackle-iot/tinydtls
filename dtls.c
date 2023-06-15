@@ -52,7 +52,6 @@
 #include "alert.h"
 #include "session.h"
 #include "dtls_prng.h"
-#include "dtls_mutex.h"
 
 #ifdef WITH_SHA256
 #  include "hmac.h"
@@ -1681,11 +1680,6 @@ dtls_send_handshake_msg(dtls_context_t *ctx,
       (dtls_uint16_to_int(HANDSHAKE(Data)->message_seq) > 0)))))
 
 
-#ifdef DTLS_CONSTRAINED_STACK
-static dtls_mutex_t static_mutex = DTLS_MUTEX_INITIALIZER;
-static unsigned char sendbuf[DTLS_MAX_BUF];
-#endif /* DTLS_CONSTRAINED_STACK */
-
 /**
  * Sends the data passed in @p buf as a DTLS record of type @p type to
  * the given peer. The data will be encrypted and compressed according
@@ -1714,17 +1708,11 @@ dtls_send_multi(dtls_context_t *ctx, dtls_peer_t *peer,
    * TODO: check if we can use the receive buf here. This would mean
    * that we might not be able to handle multiple records stuffed in
    * one UDP datagram */
-#ifndef DTLS_CONSTRAINED_STACK
   unsigned char sendbuf[DTLS_MAX_BUF];
-#endif /* ! DTLS_CONSTRAINED_STACK */
   size_t len = sizeof(sendbuf);
   int res;
   unsigned int i;
   size_t overall_len = 0;
-
-#ifdef DTLS_CONSTRAINED_STACK
-  dtls_mutex_lock(&static_mutex);
-#endif /* DTLS_CONSTRAINED_STACK */
 
   res = dtls_prepare_record(peer, security, type, buf_array, buf_len_array, buf_array_len, sendbuf, &len);
 
@@ -1789,9 +1777,6 @@ dtls_send_multi(dtls_context_t *ctx, dtls_peer_t *peer,
   res = CALL(ctx, write, session, sendbuf, len);
 
 return_unlock:
-#ifdef DTLS_CONSTRAINED_STACK
-  dtls_mutex_unlock(&static_mutex);
-#endif /* DTLS_CONSTRAINED_STACK */
 
   /* Guess number of bytes application data actually sent:
    * dtls_prepare_record() tells us in len the number of bytes to
@@ -4600,9 +4585,7 @@ dtls_retransmit(dtls_context_t *context, netq_t *node) {
 
   /* re-initialize timeout when maximum number of retransmissions are not reached yet */
   if (node->retransmit_cnt < DTLS_DEFAULT_MAX_RETRANSMIT) {
-#ifndef DTLS_CONSTRAINED_STACK
       unsigned char sendbuf[DTLS_MAX_BUF];
-#endif /* ! DTLS_CONSTRAINED_STACK */
       size_t len = sizeof(sendbuf);
       int err;
       unsigned char *data = node->data;
@@ -4618,10 +4601,6 @@ dtls_retransmit(dtls_context_t *context, netq_t *node) {
         netq_node_free(node);
         return;
       }
-
-#ifdef DTLS_CONSTRAINED_STACK
-      dtls_mutex_lock(&static_mutex);
-#endif /* DTLS_CONSTRAINED_STACK */
 
       dtls_ticks(&now);
       node->retransmit_cnt++;
@@ -4648,9 +4627,6 @@ dtls_retransmit(dtls_context_t *context, netq_t *node) {
 
       (void)CALL(context, write, &node->peer->session, sendbuf, len);
 return_unlock:
-#ifdef DTLS_CONSTRAINED_STACK
-      dtls_mutex_unlock(&static_mutex);
-#endif /* DTLS_CONSTRAINED_STACK */
 
       return;
   }

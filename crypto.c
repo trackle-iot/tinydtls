@@ -35,8 +35,6 @@
 #include "dtls_prng.h"
 #include "netq.h"
 
-#include "dtls_mutex.h"
-
 #ifndef uECC_CURVE
 #define ECC_CURVE uECC_secp256r1()
 #endif
@@ -52,18 +50,6 @@
   dtls_hmac_update(Context, (Seed), (Length))
 
 static struct dtls_cipher_context_t cipher_context;
-static dtls_mutex_t cipher_context_mutex = DTLS_MUTEX_INITIALIZER;
-
-static struct dtls_cipher_context_t *dtls_cipher_context_get(void)
-{
-  dtls_mutex_lock(&cipher_context_mutex);
-  return &cipher_context;
-}
-
-static void dtls_cipher_context_release(void)
-{
-  dtls_mutex_unlock(&cipher_context_mutex);
-}
 
 void crypto_init(void)
 {
@@ -534,7 +520,7 @@ int dtls_encrypt_params(const dtls_ccm_params_t *params,
                         const unsigned char *aad, size_t la)
 {
   int ret;
-  struct dtls_cipher_context_t *ctx = dtls_cipher_context_get();
+  struct dtls_cipher_context_t *ctx = &cipher_context;
   ctx->data.tag_length = params->tag_length;
   ctx->data.l = params->l;
 
@@ -551,7 +537,6 @@ int dtls_encrypt_params(const dtls_ccm_params_t *params,
   ret = dtls_ccm_encrypt(&ctx->data, src, length, buf, params->nonce, aad, la);
 
 error:
-  dtls_cipher_context_release();
   return ret;
 }
 
@@ -575,7 +560,7 @@ int dtls_decrypt_params(const dtls_ccm_params_t *params,
                         const unsigned char *aad, size_t la)
 {
   int ret;
-  struct dtls_cipher_context_t *ctx = dtls_cipher_context_get();
+  struct dtls_cipher_context_t *ctx = &cipher_context;
   ctx->data.tag_length = params->tag_length;
   ctx->data.l = params->l;
 
@@ -592,7 +577,6 @@ int dtls_decrypt_params(const dtls_ccm_params_t *params,
   ret = dtls_ccm_decrypt(&ctx->data, src, length, buf, params->nonce, aad, la);
 
 error:
-  dtls_cipher_context_release();
   return ret;
 }
 
