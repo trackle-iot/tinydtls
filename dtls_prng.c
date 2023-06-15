@@ -40,9 +40,3 @@ int dtls_prng(unsigned char *buf, size_t len)
         *buf++ = customRand() & 0xFF;
     return klen;
 }
-
-void dtls_prng_init(unsigned seed)
-{
-    (void)seed;
-    // Nothing to do here. Seed initialization is done outside, in Trackle Library.
-}

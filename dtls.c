@@ -4462,7 +4462,6 @@ dtls_new_context(void *app_data) {
   dtls_tick_t now;
 
   dtls_ticks(&now);
-  dtls_prng_init(now);
 
   c = malloc_context();
   if (!c)
