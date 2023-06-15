@@ -174,34 +174,8 @@ static const unsigned char server_key_header[] = {0x0b, 0x00, 0x00, 0x5e, 0x00, 
 
 #endif /* DTLS_ECC */
 
-#if defined(WITH_LWIP) || defined(IS_MBEDOS)
+static int the_dtls_context_was_initialized = 0;
 static dtls_context_t the_dtls_context;
-
-static inline dtls_context_t *
-malloc_context(void) {
-  return &the_dtls_context;
-}
-
-static inline void
-free_context(dtls_context_t *context) {
-  (void)context;
-}
-
-#endif /* WITH_LWIP || IS_MBEDOS*/
-
-#if defined(WITH_POSIX) || defined(IS_WINDOWS) || defined(WITH_ESPIDF)
-
-static inline dtls_context_t *
-malloc_context(void) {
-  return (dtls_context_t *)malloc(sizeof(dtls_context_t));
-}
-
-static inline void
-free_context(dtls_context_t *context) {
-  free(context);
-}
-
-#endif /* WITH_POSIX | IS_WINDOWS | WITH_ESPIDF */
 
 void
 dtls_init(void) {
@@ -4458,15 +4432,19 @@ dtls_handle_message(dtls_context_t *ctx,
 
 dtls_context_t *
 dtls_new_context(void *app_data) {
+
+  if (the_dtls_context_was_initialized)
+    goto error;
+
+  the_dtls_context_was_initialized = 1;
+
   dtls_context_t *c;
   dtls_tick_t now;
 
   dtls_ticks(&now);
 
-  c = malloc_context();
-  if (!c)
-    goto error;
-
+  c = &the_dtls_context;
+  
   memset(c, 0, sizeof(dtls_context_t));
   c->app = app_data;
 
@@ -4479,35 +4457,13 @@ dtls_new_context(void *app_data) {
 
  error:
   dtls_alert("cannot create DTLS context\n");
-  if (c)
-    dtls_free_context(c);
   return NULL;
+  
 }
 
 void dtls_reset_peer(dtls_context_t *ctx, dtls_peer_t *peer)
 {
   dtls_destroy_peer(ctx, peer, DTLS_DESTROY_CLOSE);
-}
-
-void
-dtls_free_context(dtls_context_t *ctx) {
-  dtls_peer_t *p, *tmp;
-
-  if (!ctx) {
-    return;
-  }
-
-  if (ctx->peers) {
-#ifdef DTLS_PEERS_NOHASH
-    LL_FOREACH_SAFE(ctx->peers, p, tmp) {
-#else /* DTLS_PEERS_NOHASH */
-    HASH_ITER(hh, ctx->peers, p, tmp) {
-#endif /* DTLS_PEERS_NOHASH */
-      dtls_destroy_peer(ctx, p, DTLS_DESTROY_CLOSE);
-    }
-  }
-
-  free_context(ctx);
 }
 
 int

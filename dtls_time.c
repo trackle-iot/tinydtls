@@ -19,6 +19,8 @@
  * @brief Clock Handling
  */
 
+#include <stdlib.h>
+
 #include "tinydtls.h"
 #include "dtls_time.h"
 
