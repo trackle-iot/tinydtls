@@ -47,22 +47,7 @@ extern "C" {
  */
 #include <sys/types.h>
 #include "tinydtls.h"
-
-#ifdef IS_WINDOWS
-#include <stdint.h>
-
-typedef uint8_t u_int8_t;
-typedef uint16_t u_int16_t;
-typedef uint32_t u_int32_t;
-typedef uint64_t u_int64_t;
-
-#endif
-
-#ifdef SHA2_USE_INTTYPES_H
-
 #include <inttypes.h>
-
-#endif /* SHA2_USE_INTTYPES_H */
 
 
 /*** SHA-256/384/512 Various Length Definitions ***********************/
@@ -76,35 +61,6 @@ typedef uint64_t u_int64_t;
 #define DTLS_SHA512_DIGEST_LENGTH		64
 #define DTLS_SHA512_DIGEST_STRING_LENGTH	(DTLS_SHA512_DIGEST_LENGTH * 2 + 1)
 
-
-/*** SHA-256/384/512 Context Structures *******************************/
-/* NOTE: If your architecture does not define either u_intXX_t types or
- * uintXX_t (from inttypes.h), you may need to define things by hand
- * for your system:
- */
-#if 0
-typedef unsigned char u_int8_t;		/* 1-byte  (8-bits)  */
-typedef unsigned int u_int32_t;		/* 4-bytes (32-bits) */
-typedef unsigned long long u_int64_t;	/* 8-bytes (64-bits) */
-#endif
-/*
- * Most BSD systems already define u_intXX_t types, as does Linux.
- * Some systems, however, like Compaq's Tru64 Unix instead can use
- * uintXX_t types defined by very recent ANSI C standards and included
- * in the file:
- *
- *   #include <inttypes.h>
- *
- * If you choose to use <inttypes.h> then please define: 
- *
- *   #define SHA2_USE_INTTYPES_H
- *
- * Or on the command line during compile:
- *
- *   cc -DSHA2_USE_INTTYPES_H ...
- */
-#ifdef SHA2_USE_INTTYPES_H
-
 typedef struct _dtls_sha256_ctx {
 	uint32_t	state[8];
 	uint64_t	bitcount;
@@ -116,27 +72,11 @@ typedef struct _dtls_sha512_ctx {
 	uint8_t	buffer[DTLS_SHA512_BLOCK_LENGTH];
 } dtls_sha512_ctx;
 
-#else /* SHA2_USE_INTTYPES_H */
-
-typedef struct _dtls_sha256_ctx {
-	u_int32_t	state[8];
-	u_int64_t	bitcount;
-	u_int8_t	buffer[DTLS_SHA256_BLOCK_LENGTH];
-} dtls_sha256_ctx;
-typedef struct _dtls_sha512_ctx {
-	u_int64_t	state[8];
-	u_int64_t	bitcount[2];
-	u_int8_t	buffer[DTLS_SHA512_BLOCK_LENGTH];
-} dtls_sha512_ctx;
-
-#endif /* SHA2_USE_INTTYPES_H */
-
 typedef dtls_sha512_ctx dtls_sha384_ctx;
 
 
 /*** SHA-256/384/512 Function Prototypes ******************************/
 #ifndef NOPROTO
-#ifdef SHA2_USE_INTTYPES_H
 
 #ifdef WITH_SHA256
 void dtls_sha256_init(dtls_sha256_ctx *);
@@ -161,34 +101,6 @@ void dtls_sha512_final(uint8_t[DTLS_SHA512_DIGEST_LENGTH], dtls_sha512_ctx*);
 char* dtls_sha512_end(dtls_sha512_ctx*, char[DTLS_SHA512_DIGEST_STRING_LENGTH]);
 char* dtls_sha512_data(const uint8_t*, size_t, char[DTLS_SHA512_DIGEST_STRING_LENGTH]);
 #endif
-
-#else /* SHA2_USE_INTTYPES_H */
-
-#ifdef WITH_SHA256
-void dtls_sha256_init(dtls_sha256_ctx *);
-void dtls_sha256_update(dtls_sha256_ctx*, const u_int8_t*, size_t);
-void dtls_sha256_final(u_int8_t[DTLS_SHA256_DIGEST_LENGTH], dtls_sha256_ctx*);
-char* dtls_sha256_end(dtls_sha256_ctx*, char[DTLS_SHA256_DIGEST_STRING_LENGTH]);
-char* dtls_sha256_data(const u_int8_t*, size_t, char[DTLS_SHA256_DIGEST_STRING_LENGTH]);
-#endif
-
-#ifdef WITH_SHA384
-void dtls_sha384_init(dtls_sha384_ctx*);
-void dtls_sha384_update(dtls_sha384_ctx*, const u_int8_t*, size_t);
-void dtls_sha384_final(u_int8_t[DTLS_SHA384_DIGEST_LENGTH], dtls_sha384_ctx*);
-char* dtls_sha384_end(dtls_sha384_ctx*, char[DTLS_SHA384_DIGEST_STRING_LENGTH]);
-char* dtls_sha384_data(const u_int8_t*, size_t, char[DTLS_SHA384_DIGEST_STRING_LENGTH]);
-#endif
-
-#ifdef WITH_SHA512
-void dtls_sha512_init(dtls_sha512_ctx*);
-void dtls_sha512_update(dtls_sha512_ctx*, const u_int8_t*, size_t);
-void dtls_sha512_final(u_int8_t[DTLS_SHA512_DIGEST_LENGTH], dtls_sha512_ctx*);
-char* dtls_sha512_end(dtls_sha512_ctx*, char[DTLS_SHA512_DIGEST_STRING_LENGTH]);
-char* dtls_sha512_data(const u_int8_t*, size_t, char[DTLS_SHA512_DIGEST_STRING_LENGTH]);
-#endif
-
-#endif /* SHA2_USE_INTTYPES_H */
 
 #else /* NOPROTO */
 
