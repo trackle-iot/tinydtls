@@ -31,25 +31,9 @@
  */
 void TinyDtls_set_log_callback(void (*logCallback)(unsigned int, const char *, ...));
 
-#if defined(_WIN32) || defined(_WIN64)
-#define IS_WINDOWS 1
-#endif
-
 #define WITH_SHA256 1
 
-#ifndef WITH_LWIP
-#ifndef IS_MBEDOS
-#ifndef IS_WINDOWS
-#ifndef WITH_ESPIDF
-#ifndef WITH_POSIX
-/* TODO: To remove in a future */
-#define WITH_POSIX 1
-#endif /* WITH_POSIX */
-#endif /* WITH_ESPIDF */
-#endif /* IS_WINDOWS */
 #include "dtls_config.h"
-#endif /* IS_MBEDOS */
-#endif /* WITH_LWIP */
 
 #ifndef DTLS_ECC
 #ifndef DTLS_PSK
