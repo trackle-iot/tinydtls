@@ -37,10 +37,6 @@ void TinyDtls_set_log_callback(void (*logCallback)(unsigned int, const char *, .
 
 #define WITH_SHA256 1
 
-#if defined WITH_LWIP || defined(IS_MBEDOS)
-#include "platform-specific/lwip_platform.h"
-#endif
-
 #ifndef WITH_LWIP
 #ifndef IS_MBEDOS
 #ifndef IS_WINDOWS
