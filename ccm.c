@@ -22,9 +22,7 @@
 #include "numeric.h"
 #include "ccm.h"
 
-#ifdef HAVE_ASSERT_H
-# include <assert.h>
-#endif
+#include <assert.h>
 
 #define CCM_FLAGS(A,M,L) (((A > 0) << 6) | (((M - 2)/2) << 3) | (L - 1))
 

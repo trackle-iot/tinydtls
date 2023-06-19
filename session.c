@@ -16,14 +16,7 @@
 
 #include "session.h"
 
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#else
-#ifndef assert
-#warning "assertions are disabled"
-#  define assert(x)
-#endif
-#endif
 
 int
 dtls_session_equals(const session_t *a, const session_t *b) {

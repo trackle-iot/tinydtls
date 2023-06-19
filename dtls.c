@@ -22,27 +22,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_ASSERT_H
 #include <assert.h>
-#endif
 #include <stdlib.h>
 #include "global.h"
-#ifdef HAVE_INTTYPES_H
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
-#else
-#  ifndef PRIu64
-#    define PRIu64 "llu"
-#  endif
-#  ifndef PRIx64
-#    define PRIx64 "llx"
-#  endif
-#endif /* HAVE_INTTYPES_H */
 
 #include "utlist.h"
-#ifndef DTLS_PEERS_NOHASH
 #include "uthash.h"
-#endif /* DTLS_PEERS_NOHASH */
 
 #include "dtls_debug.h"
 #include "numeric.h"
@@ -76,25 +63,6 @@
 #define dtls_get_sequence_number(H) dtls_uint48_to_ulong((H)->sequence_number)
 #define dtls_get_fragment_length(H) dtls_uint24_to_int((H)->fragment_length)
 
-#ifdef DTLS_PEERS_NOHASH
-#define FIND_PEER(head,sess,out)                                \
-  do {                                                          \
-    dtls_peer_t * tmp;                                          \
-    (out) = NULL;                                               \
-    LL_FOREACH((head), tmp) {                                   \
-      if (dtls_session_equals(&tmp->session, (sess))) {         \
-        (out) = tmp;                                            \
-        break;                                                  \
-      }                                                         \
-    }                                                           \
-  } while (0)
-#define DEL_PEER(head,delptr)                   \
-  if ((head) != NULL && (delptr) != NULL) {	\
-    LL_DELETE(head,delptr);                     \
-  }
-#define ADD_PEER(head,sess,add)                 \
-  LL_PREPEND(ctx->peers, peer);
-#else /* DTLS_PEERS_NOHASH */
 #define FIND_PEER(head,sess,out)		\
   HASH_FIND(hh,head,sess,sizeof(session_t),out)
 #define ADD_PEER(head,sess,add)                 \
@@ -103,7 +71,6 @@
   if ((head) != NULL && (delptr) != NULL) {	\
     HASH_DELETE(hh,head,delptr);		\
   }
-#endif /* DTLS_PEERS_NOHASH */
 
 #define DTLS_RH_LENGTH sizeof(dtls_record_header_t)
 #define DTLS_HS_LENGTH sizeof(dtls_handshake_header_t)
@@ -370,35 +337,10 @@ dtls_create_cookie(dtls_context_t *ctx,
   return 0;
 }
 
-#ifdef DTLS_CHECK_CONTENTTYPE
-/* used to check if a received datagram contains a DTLS message */
-static char const content_types[] = {
-  DTLS_CT_CHANGE_CIPHER_SPEC,
-  DTLS_CT_ALERT,
-  DTLS_CT_HANDSHAKE,
-  DTLS_CT_APPLICATION_DATA,
-  0 				/* end marker */
-};
-
-/**
- * Checks if the content type of \p msg is known. This function returns
- * the found content type, or 0 otherwise.
- */
-static int
-known_content_type(const uint8_t *msg) {
-  unsigned int n;
-  assert(msg);
-
-  for (n = 0; (content_types[n] != 0) && (content_types[n]) != msg[0]; n++)
-    ;
-  return content_types[n];
-}
-#else  /* DTLS_CHECK_CONTENTTYPE */
 static int
 known_content_type(const uint8_t *msg) {
   return msg[0];
 }
-#endif /* DTLS_CHECK_CONTENTTYPE */
 
 /**
  * Checks if \p msg points to a valid DTLS record. If
@@ -4458,7 +4400,7 @@ dtls_new_context(void *app_data) {
  error:
   dtls_alert("cannot create DTLS context\n");
   return NULL;
-  
+
 }
 
 void dtls_reset_peer(dtls_context_t *ctx, dtls_peer_t *peer)

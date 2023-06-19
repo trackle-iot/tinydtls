@@ -117,18 +117,6 @@ equals(unsigned char *a, unsigned char *b, size_t len) {
   return result;
 }
 
-#ifdef HAVE_FLS
-#define dtls_fls(i) fls(i)
-#else
-static inline int 
-dtls_fls(unsigned int i) {
-  int n;
-  for (n = 0; i; n++)
-    i >>= 1;
-  return n;
-}
-#endif /* HAVE_FLS */
-
 #undef uthash_fatal
 #define uthash_fatal(msg) return(-1) /* fatal error in uthash */
 
