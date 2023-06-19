@@ -26,11 +26,11 @@ By throwing away as much of the platform-dependent code as possible, and replaci
 ## Callbacks
 
 The following functions must be used in order to provide the necessary callback functions:
-* `void TinyDtls_set_rand(uint32_t (*newCustomRand)())`*:
+* `void TinyDtls_set_rand(uint32_t (*newCustomRand)())` (from `tinydtls_set_rand.h`)*:
   * Provides a functions that returns a pseudo-random generated number (initialization must be done by calling code).
-* `void TinyDtls_set_get_millis(void (*newGetMillis)(uint32_t *))`:
+* `void TinyDtls_set_get_millis(void (*newGetMillis)(uint32_t *))` (from `tinydtls_set_get_millis.h`):
   * Provides a functions that returns the number of milliseconds elapsed since boot.
-* `void TinyDtls_set_log_callback(void (*logCallback)(unsigned int, const char *, ...))`:
+* `void TinyDtls_set_log_callback(void (*logCallback)(unsigned int, const char *, ...))` (from `tinydtls_set_get_rand.h`):
   * Provides a logging function that prints a log message (first argument is a log-level, the others are the same that you would give to printf).
 
 *If you are thinking about writing a wrapper for a new platform, please note that this function is currently being called from inside of Trackle Library to set the same callback for logging that is being provided to the library itself.
