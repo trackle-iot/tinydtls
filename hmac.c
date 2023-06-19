@@ -18,11 +18,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "tinydtls.h"
-#if defined(HAVE_ASSERT_H) && !defined(assert)
-#include <assert.h>
-#endif /* HAVE_ASSERT_H && !assert */
 
 #include "dtls_debug.h"
 #include "hmac.h"
