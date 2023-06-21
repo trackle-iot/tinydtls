@@ -24,12 +24,29 @@
 #ifndef _DTLS_TINYDTLS_H_
 #define _DTLS_TINYDTLS_H_
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @brief Add log function that accepts log level as first parameter.
  *
  * @param logCallback Log function to use.
  */
 void TinyDtls_set_log_callback(void (*logCallback)(unsigned int, const char *, ...));
+
+/**
+ * @brief Add log level for TinyDTLS.
+ * 
+ * @param level Level to be set for TinyDTLS
+ */
+void TinyDtls_set_log_level(int level);
+
+#ifdef __cplusplus
+};
+#endif
+
 
 #define WITH_SHA256 1
 

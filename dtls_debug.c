@@ -23,6 +23,18 @@
 #include "global.h"
 #include "dtls_debug.h"
 
+static int current_log_level = DTLS_LOG_EMERG;
+
+void TinyDtls_set_log_level(int level)
+{
+  current_log_level = level;
+}
+
+int TinyDtls_get_log_level()
+{
+  return current_log_level;
+}
+
 /**
  * Discard any log printed with this function.
  * This is meant to be used as default function for \ref TinyDtls_logCallback.
